@@ -1,0 +1,190 @@
+openapi: 3.0.0
+info:
+  title: KJ Restaurant API
+  version: 1.0.1
+servers:
+- url: https://virtserver.swaggerhub.com/KamnaJain/Menu/1.0.1
+  description: SwaggerHub API Auto Mocking
+tags:
+- name: Menu
+  description: The following are Menu related operation.
+- name: Order
+  description: The following are Order related operations.
+paths:
+  /menu/{category}:
+    get:
+      tags:
+      - Menu
+      operationId: menuCategoryGET
+      parameters:
+      - name: category
+        in: path
+        required: true
+        style: simple
+        explode: false
+        schema:
+          type: string
+          example: Appetizers
+      responses:
+        "200":
+          description: List of menu items in the given category
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/MenuItem'
+                x-content-type: application/json
+      x-swagger-router-controller: Menu
+  /menu:
+    get:
+      tags:
+      - Menu
+      operationId: menuGET
+      responses:
+        "200":
+          description: List of All Menu items at the Restaurant
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/MenuItem'
+                x-content-type: application/json
+      x-swagger-router-controller: Menu
+    post:
+      tags:
+      - Menu
+      description: Add a new item to the menu
+      operationId: menuPOST
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/MenuItem'
+      responses:
+        "200":
+          description: A new menu item was successfully added to the menu
+        "403":
+          description: This error occurs when an unauthorized operation is attempted
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/inline_response_403'
+      security:
+      - password:
+        - write
+      x-swagger-router-controller: Menu
+  /order:
+    post:
+      tags:
+      - Order
+      operationId: orderPOST
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Order'
+      responses:
+        "200":
+          description: Order successfully placed.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MenuItemsOrdered'
+      security:
+      - password:
+        - write
+      x-swagger-router-controller: Order
+components:
+  schemas:
+    MenuItem:
+      type: object
+      properties:
+        name:
+          type: string
+          example: Sweet Potato Fries
+        category:
+          type: string
+          example: Appetizers
+        price:
+          type: integer
+        available:
+          type: boolean
+          example: true
+      example:
+        price: 0
+        name: Sweet Potato Fries
+        available: true
+        category: Appetizers
+    Order:
+      type: object
+      properties:
+        id:
+          type: integer
+          example: 1
+        menu_items:
+          type: array
+          items:
+            $ref: '#/components/schemas/MenuItemsOrdered'
+        orderDate:
+          type: string
+          format: date
+          example: 2020-09-03
+        customer:
+          $ref: '#/components/schemas/Customer'
+    MenuItemsOrdered:
+      required:
+      - itemName
+      - quantity
+      type: object
+      properties:
+        itemName:
+          type: string
+          example: Sweet Potato Fries
+        quantity:
+          type: integer
+          example: 2
+      example:
+        itemName: Sweet Potato Fries
+        quantity: 2
+    Customer:
+      required:
+      - customerId
+      - name
+      type: object
+      properties:
+        customerId:
+          type: string
+          example: cust1
+        name:
+          type: string
+          example: Jane Doe
+        phone:
+          type: string
+          example: 555-555-5555
+    inline_response_403:
+      type: object
+      properties:
+        statusCode:
+          type: string
+          example: "403"
+        message:
+          type: string
+          example: You are not authorized to add a new item to the Menu.
+  responses:
+    "403ForbiddenError":
+      description: This error occurs when an unauthorized operation is attempted
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/inline_response_403'
+  securitySchemes:
+    password:
+      type: oauth2
+      flows:
+        password:
+          tokenUrl: http://example.com/oauth/token
+          scopes:
+            write: allows modifying resources
+            read: allows reading resources
